@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html>
+<meta charset="utf-8">
+
+<style>
+
+.axis--x path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+  <center><h4>Statistics for carbohydrates , fat and protein consumption in select regions of the world</h4></center>
+
+  <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+
+var newData = [];
+
+  var data = d3.json("result2.json", function(error, data) {
+
+      var keys = Object.keys(data);
+    //  console.log(keys);
+
+      keys.forEach(function(el){
+
+            var ingre = data[el];
+            var newObj = {};
+
+                newObj["region"] = el;
+                newObj["carbo"] = ingre["carbohydrates_100g"];
+                newObj["protein"] = ingre["proteins_100g"];
+                newObj["fat"] = ingre["fat_100g"];
+                newData.push(newObj);  //--------------------- DATA ----------------
+                // console.log(newObj);
+                console.log(newData);
+            }); //forEach
+
+
+
+
+            var svg = d3.select("svg"),
+              margin = {top: 20, right: 80, bottom: 30, left: 50},
+              width = svg.attr("width") - margin.left - margin.right,
+              height = svg.attr("height") - margin.top - margin.bottom,
+              g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        
+
+          var x = d3.scaleTime().range([0, width]),
+              y = d3.scaleLinear().range([height, 0]),
+              z = d3.scaleOrdinal(d3.schemeCategory10);
+
+          var line = d3.line()
+              .curve(d3.curveBasis)
+              .x(function(d) { return x(d.date); })
+              .y(function(d) { return y(d.temperature); });
+
+
+
+      });
+
+    </script>
+  </body>
+</html>
