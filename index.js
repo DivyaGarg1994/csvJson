@@ -12,9 +12,18 @@ var header = 0,headContent;
 var countryObj = {};
 var sugar , salt ,country;
 var countries = ["Netherlands","Canada","Australia","France","Spain","South Africa","Germany","United Kingdom","United States"];
+var saltCounter = [0,0,0,0,0,0,0,0,0];
+var sugarCounter = [0,0,0,0,0,0,0,0,0];
 
-// if(countries.indexOf("Canada")!=-1)
-//   console.log("------------true----------");
+function fillSaltCounter(index){
+
+  saltCounter[index]++;
+}
+
+function fillSugarCounter(index){
+
+  sugarCounter[index]++;
+}
 
 
 r1.on('line' , (line) =>{
@@ -34,11 +43,8 @@ r1.on('line' , (line) =>{
     var arr,temp;
     var lineTemp = line;
 
-
-
-//console.log("Before "+line.split(",").length);
     while((arr = regex.exec(line))){
-    //  console.log(arr[0]);
+
           temp = arr[0].replace(/,/g,"@@@");
           lineTemp = lineTemp.replace(arr[0] , temp);
 
@@ -57,8 +63,8 @@ r1.on('line' , (line) =>{
 
         conArr.forEach(function(el){
 
-
-              if(countries.indexOf(el)!=-1)
+          var index = countries.indexOf(el);
+              if(index!=-1)
               {
                    var Obj = {};
                    if( countryObj[el] == undefined)
@@ -66,18 +72,21 @@ r1.on('line' , (line) =>{
                        Obj[headContent[salt]] = parseFloat(lineArr[salt]);
                        Obj[headContent[sugar]] = parseFloat(lineArr[sugar]);
                        countryObj[el] = Obj;
-                       //console.log(countryObj)
+
                      }
                   else{
                     countryObj[el][headContent[salt]] += parseFloat(lineArr[salt]);
                     countryObj[el][headContent[sugar]] += parseFloat(lineArr[sugar]);
                   }
-                //  console.log(countryObj);
-              }
-    // console.log("------------------------------------------------------------------------------");
-    // console.log(countryObj);
 
-  })
+                  if(lineArr[salt] != 0)
+                    fillSaltCounter(index);
+
+                  if(lineArr[sugar] != 0)
+                    fillSugarCounter(index);
+              }
+
+    });
   }
 
 
@@ -86,7 +95,21 @@ r1.on('line' , (line) =>{
 });
 
 
+function  avg(saltCounter , sugarCounter , countryObj){
+
+  var keys = Object.keys(countryObj);
+  keys.forEach(function(el){
+
+      var index = countries.indexOf(el);
+      countryObj[el]["salt_100g"] /= saltCounter[index];
+      countryObj[el]["sugars_100g"] /= sugarCounter[index];
+  });
+
+  return countryObj;
+} //avg
+
 r1.on('close',function(){
-  console.log(countryObj);
-	fs.writeFileSync('result.json',JSON.stringify(countryObj),'utf-8');
+
+  var newCountryObj = avg(saltCounter , sugarCounter , countryObj);
+	fs.writeFileSync('result.json',JSON.stringify(newCountryObj),'utf-8');
 });

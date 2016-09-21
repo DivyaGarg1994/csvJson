@@ -16,9 +16,11 @@ var countries1 = ["United Kingdom","Denmark","Sweden","Norway"];
 var countries2 = ["France","Belgium","Germany","Switzerland","Netherlands"];
 var countries3 = ["Portugal","Greece","Italy","Spain","Croatia","Albania"];
 
+var carboCounter = [0,0,0];
+var proteinCounter = [0,0,0];
+var fatCounter = [0,0,0];
 
-// if(countries.indexOf("Canada")!=-1)
-//   console.log("------------true----------");
+
 
 
 r1.on('line' , (line) =>{
@@ -31,9 +33,6 @@ r1.on('line' , (line) =>{
   carbo = headContent.indexOf("carbohydrates_100g");
   protein = headContent.indexOf("proteins_100g");
   fat = headContent.indexOf("fat_100g")
-// console.log("---------------------"+salt);
-// console.log("---------------------"+sugar);
-
 
     for(var key in countryObj){
         if(countryObj.hasOwnProperty(key)){
@@ -41,7 +40,7 @@ r1.on('line' , (line) =>{
           countryObj[key][headContent[carbo]] = 0;
           countryObj[key][headContent[protein]] = 0;
 
-          console.log(countryObj);
+        //  console.log(countryObj);
         }
       }
   }
@@ -63,8 +62,7 @@ r1.on('line' , (line) =>{
       }
 
 
-    var lineArr = lineTemp.split(",");
-
+      var lineArr = lineTemp.split(",");
       var conArr = lineArr[country].split("@@@");
 
     if(lineArr[fat].trim() == "")
@@ -78,35 +76,51 @@ r1.on('line' , (line) =>{
 
   conArr.forEach(function(el){
 
+    var area = -1;
+
             if(countries1.indexOf(el)!=-1)
             {
 
                   countryObj["North Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
                   countryObj["North Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
                   countryObj["North Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-
+                  area=0;
                     //console.log(countryObj);
             }
 
-            else if(countries2.indexOf(el)!=-1)
+            if(countries2.indexOf(el)!=-1)
             {
 
               countryObj["Central Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
               countryObj["Central Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
               countryObj["Central Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-
-                  //  console.log(countryObj);
+              area =1;
             }
 
-            else if(countries3.indexOf(el)!=-1)
+            if(countries3.indexOf(el)!=-1)
             {
 
               countryObj["South Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
               countryObj["South Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
               countryObj["South Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-
-                //    console.log(countryObj);
+              area = 2;
             }
+
+            // console.log(area);
+            if(area!=-1){
+              if(lineArr[protein]!=0){
+                proteinCounter[area]++;
+              }
+
+              if(lineArr[fat]!=0){
+                fatCounter[area]++;
+              }
+
+              if(lineArr[carbo]!=0){
+                carboCounter[area]++;
+              }
+          }
+
         });
   }
 
@@ -116,7 +130,26 @@ r1.on('line' , (line) =>{
 });
 
 
+function  avg(carboCounter , fatCounter , proteinCounter , countryObj){
+
+  var keys = Object.keys(countryObj);
+
+  for(var el in countryObj){
+
+      var index = keys.indexOf(el);
+      countryObj[el]["proteins_100g"] /= proteinCounter[index];
+      countryObj[el]["carbohydrates_100g"] /= carboCounter[index];
+        countryObj[el]["fat_100g"] /= fatCounter[index];
+  };
+
+  return countryObj;
+  console.log(countryObj)
+} //avg
+
+
+
 r1.on('close',function(){
-  console.log(countryObj);
-	fs.writeFileSync('result2.json',JSON.stringify(countryObj),'utf-8');
+
+  var newCountryObj = avg(carboCounter , fatCounter , proteinCounter , countryObj);
+	fs.writeFileSync('result2.json',JSON.stringify(newCountryObj),'utf-8');
 });
