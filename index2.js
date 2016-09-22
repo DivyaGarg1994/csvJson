@@ -52,6 +52,8 @@ r1.on('line' , (line) =>{
     var regex = /".*?"/g;
     var arr,temp;
     var lineTemp = line;
+
+    // regex for splitting ,
     while((arr = regex.exec(line))){
       temp = arr[0].replace(/,/g,"@@@");
       lineTemp = lineTemp.replace(arr[0] , temp);
@@ -60,10 +62,13 @@ r1.on('line' , (line) =>{
     var lineArr = lineTemp.split(",");
     var conArr = lineArr[country].split("@@@");
 
+    //iterate through array after splitting
     conArr.forEach(function(el){
 
       var area = -1;
       el = el.replace("\"","");
+
+      // for first region
       if(countries1.indexOf(el)!=-1)
       {
         if(checkNaN(lineArr[fat]))
@@ -78,6 +83,7 @@ r1.on('line' , (line) =>{
 
       }
 
+      //for second region
       if(countries2.indexOf(el)!=-1)
       {
         if(checkNaN(lineArr[fat]))
@@ -91,6 +97,7 @@ r1.on('line' , (line) =>{
         area =1;
       }
 
+      //for third region
       if(countries3.indexOf(el)!=-1)
       {
         if(checkNaN(lineArr[fat]))
@@ -104,7 +111,7 @@ r1.on('line' , (line) =>{
         area = 2;
       }
 
-      // console.log(area);
+    //for counters
       if(area!=-1){
         if(checkNaN(lineArr[protein])){
           proteinCounter[area]++;
@@ -117,7 +124,7 @@ r1.on('line' , (line) =>{
         if(checkNaN(lineArr[carbo])){
           carboCounter[area]++;
         }
-      }
+      } //if area!=-1
 
     });
   }
@@ -127,6 +134,7 @@ r1.on('line' , (line) =>{
 
 });
 
+// if value is ""
 function checkNaN(value){
 
   if(value.trim()=="")
@@ -136,6 +144,7 @@ function checkNaN(value){
 }// checkNaN
 
 
+//calculate average
 function  avg(carboCounter , fatCounter , proteinCounter , countryObj){
 
   var keys = Object.keys(countryObj);

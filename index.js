@@ -35,17 +35,16 @@ r1.on('line' , function(line){
     var arr,temp;
     var lineTemp = line;
 
+//regex to handle ,
     while((arr = regex.exec(line))){
-
       temp = arr[0].replace(/,/g,"@@@");
       lineTemp = lineTemp.replace(arr[0] , temp);
-
     }
 
     var lineArr = lineTemp.split(",");
-
     var conArr = lineArr[country].split("@@@");
 
+//iterate through entire splitted array
     conArr.forEach(function(el){
 
       el = el.replace("\"","");
@@ -54,12 +53,13 @@ r1.on('line' , function(line){
       {
             if( countryObj[el] == undefined)
             {
-              countryObj[el] = initCountryObj(lineArr[sugar], lineArr[salt]);
+              countryObj[el] = initCountryObj(lineArr[salt],lineArr[sugar]);
             }
             else{
-              countryObj[el] = addToCountryObj(lineArr[sugar], lineArr[salt], countryObj[el]);
+              countryObj[el] = addToCountryObj(lineArr[salt], lineArr[sugar], countryObj[el]);
             }
 
+            // for counting number of salt , sugar
             if(checkNan(lineArr[salt] )){
               saltCounter[index]++;
             }
@@ -67,16 +67,15 @@ r1.on('line' , function(line){
             if(checkNan(lineArr[sugar])){
               sugarCounter[index]++;
             }
+      }//if index!=-1
 
-      }
-
-    });
+    }); //conArr.forEach
   }
   header++;
 
 });
 
-//for new country
+//adding salt,sugar values for new country
 function initCountryObj(salt, sugar){
   localObj = {
     'salt_100g' : (checkNan(salt)?parseFloat(salt):0),
@@ -86,17 +85,17 @@ function initCountryObj(salt, sugar){
   return localObj;
 }
 
-//for existing country
+//adding salt,sugar values to existing country
 function addToCountryObj(salt, sugar, object){
-//  console.log(object);
+
   object['salt_100g'] += (checkNan(salt)?parseFloat(salt):0);
   object['sugars_100g'] += (checkNan(sugar)?parseFloat(sugar):0);
 
   return object;
 }
 
+// checking ""
 function checkNan(value){
-
   if(value.trim()=="")
     return false;
   else
@@ -104,6 +103,7 @@ function checkNan(value){
 }// checkNan
 
 
+//calculating average of salt , sugar
 function  avg(saltCounter , sugarCounter , countryObj){
 
   var keys = Object.keys(countryObj);
@@ -113,7 +113,6 @@ function  avg(saltCounter , sugarCounter , countryObj){
     countryObj[el]["salt_100g"] /= saltCounter[index];
     countryObj[el]["sugars_100g"] /= sugarCounter[index];
   });
-
   return countryObj;
 } //avg
 
