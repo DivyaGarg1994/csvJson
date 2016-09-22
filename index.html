@@ -58,11 +58,6 @@ var newData = [];
 
             }); //forEach
 
-
-
-
-            //console.log(newData);  //-----------------data-----------
-
             stacks();
 
   }); //d3.json ends here
@@ -90,7 +85,7 @@ var newData = [];
                   });
                 }));
 
-                // Set x, y and colors
+
                   var x = d3.scale.ordinal()
                     .domain(dataset[0].map(function(d) { return d.x; }))
                     .rangeRoundBands([10, width-10], 0.02);
@@ -99,8 +94,8 @@ var newData = [];
                     .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
                     .range([height, 0]);
 
+                  // Set x, y and colors
                   var colors = ["b33040", "#d25c4d"];
-
 
                   // Define and draw axes
                   var yAxis = d3.svg.axis()
@@ -140,6 +135,7 @@ var newData = [];
                       .attr("transform", "rotate(-90)")
                       .style("stroke","blue")
                       .text("Consumption per 100gm --");
+
                     // Create groups for each series, rects for each segment
                     var groups = svg.selectAll("g.cost")
                       .data(dataset)
@@ -185,8 +181,8 @@ var newData = [];
                       .style("text-anchor", "start")
                       .text(function(d, i) {
                         switch (i) {
-                          case 0: return "SUGAR";
-                          case 1: return "SALT";
+                          case 0: return "SALT";
+                          case 1: return "SUGAR";
                         }
                       });
 
