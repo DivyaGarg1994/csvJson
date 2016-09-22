@@ -1,4 +1,4 @@
-console.log("hello");
+
 var fs = require("fs");
 var readline = require("readline");
 
