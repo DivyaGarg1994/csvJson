@@ -36,47 +36,28 @@
 var newData = [];
 
   var data = d3.json("result2.json", function(error, data) {
-
-      var keys = Object.keys(data);
-
-      keys.forEach(function(el){
-
-            var ingre = data[el];
-            var innerKeys = Object.keys(ingre);
-
-              innerKeys.forEach(function(innerEl){
-
-                var element = innerEl;
-                var newObj = {};
-                  newObj["region"] = el;
-                  newObj["prod"] = element;
-                  newObj["value1"] = ingre[element];
-
-                  newData.push(newObj);
-
-              });
-
-
-      }); //forEach
-
-      //
+        newData = data;
         lines();
 
   });  //d3 json
 
 
   function lines(){
+      var objKeys = Object.keys(newData);
 
     var margin = {top: 30, right: 150, bottom: 50, left: 50},
-    width = 900 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = 600 - margin.left - margin.right,
+    height = 350 - margin.top - margin.bottom;
 
-    var colors = ["#d25c4d ", "#f2b447 ", "#32CD32 "];
+    var colors = ["#32CD32 ", "#f2b447 ", "#d25c4d "];
     var color = d3.scale.ordinal().range(colors);
+
     // Set the ranges
-    var x = d3.scale.ordinal().domain(newData.map(function(d) { return d.region; })).rangePoints([0,width]);
+
+    var x = d3.scale.ordinal().domain(newData[objKeys[0]].map(function(d) {return d["region"];} )).rangePoints([0,width]);
+
     var y = d3.scale.linear().range([height, 0])
-                    .domain([0,d3.max(newData, function(d) {  return d3.max(newData, function(d) { return d.value1; });  })]);
+                    .domain([0,d3.max(newData[objKeys[0]], function(d) {  return d3.max(newData[objKeys[0]], function(d) {return d["ingreValue"]; });  })]);
 
     // Define the axes
     var xAxis = d3.svg.axis().scale(x)
@@ -90,8 +71,8 @@ var newData = [];
 
     // Define the line
     var priceline = d3.svg.line()
-    .x(function(d) { return x(d.region); })
-    .y(function(d) { return y(d.value1); });
+    .x(function(d) {return x(d["region"]); })
+    .y(function(d) {return y(d["ingreValue"]); });
 
     var svg = d3.select("body")
     .append("svg")
@@ -103,22 +84,16 @@ var newData = [];
 
 
 
-      // Nest the entries by symbol
-        var dataNest = d3.nest()
-            .key(function(d) {return d.prod;})
-            .entries(newData);
+              objKeys.forEach(function(d) {
+                  console.log("-------"+priceline(newData[d]));
+                  svg.append("path")
+                      .attr("class", "line")
+                       .attr("d", priceline(newData[d]))
+                      .style("stroke", function() {
+                         return d.color = color(d);
+                     });
 
-        // Loop through each symbol / key
-        dataNest.forEach(function(d) {
-
-            svg.append("path")
-                .attr("class", "line")
-                .attr("d", priceline(d.values))
-                .style("stroke", function() {
-                   return d.color = color(d.key);
-               });
-
-        });
+              });
 
         // Add the X Axis
             svg.append("g")
@@ -127,14 +102,14 @@ var newData = [];
             .call(xAxis);
 
               svg.append("text")      // text label for the x axis
-              .attr("x", 400 )
-              .attr("y",  460 )
+              .attr("x", 200 )
+              .attr("y",  300 )
               .style("text-anchor", "middle")
               .style("stroke","blue")
               .text("Regions --");
 
               svg.append("text")      // text label for the y axis
-              .attr("x", -220 )
+              .attr("x", -100 )
               .attr("y",  -30 )
               .style("text-anchor", "middle")
               .attr("transform", "rotate(-90)")

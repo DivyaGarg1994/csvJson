@@ -10,10 +10,15 @@ var lines =[];
 var header = 0, headContent;
 
 var countryObj = {
-  "North Europe":{},
-  "Central Europe":{},
-  "South Europe":{}
+  "carbo":[],
+  "fat":[],
+  "protein":[]
 };
+
+var countryArr = [{"region":"North Europe" , "ingreValue":0},
+                  {"region":"Central Europe" , "ingreValue":0},
+                  {"region":"South Europe" , "ingreValue":0}
+                ];
 
 var fat, protein, carbo;
 
@@ -26,6 +31,72 @@ var proteinCounter = [];
 var fatCounter = [];
 
 var keys;
+
+/* returns region */
+  function checkRegion(el){
+
+    if(countries1.indexOf(el)!=-1)
+      return "North Europe";
+    else if(countries2.indexOf(el)!=-1)
+      return "Central Europe";
+    else if(countries3.indexOf(el)!=-1)
+      return "South Europe";
+    else
+      return null;
+  }
+
+/* return index of the area for counter array */
+  function regionCount(region){
+    if(region == "North Europe")
+      return 0;
+    else if(region == "Central Europe")
+      return 1;
+    else if(region == "South Europe")
+      return 2;
+  }
+
+/* insert value of the ingredient */
+function insert(arr,ingre,region){
+
+  for(var i=0 ; i< 3 ; i++){
+
+      if(arr[i]["region"] == region){
+        arr[i]["ingreValue"] += parseFloat(ingre);
+      }
+  }
+  return arr;
+}
+
+
+/* --- checks type of ingredient and calls function to insert value */
+  function insertValue(type, ingre , region){
+
+    newCountryObj = countryObj
+      var count = regionCount(region);
+
+        if(type=="carbo")
+          {
+            var valueArr = countryObj["carbo"];
+            countryObj["carbo"] = insert(valueArr,ingre,region);
+            carboCounter[count]++;
+        }
+
+        else if(type=="protein")
+        {
+            var valueArr = countryObj["protein"];
+            countryObj["protein"] = insert(valueArr,ingre,region);
+            proteinCounter[count]++;
+        }
+        else if(type=="fat")
+        {
+            var valueArr = countryObj["fat"];
+            countryObj["fat"] = insert(valueArr,ingre,region);
+            fatCounter[count]++;
+        }
+
+  }//insertValue ends here
+
+
 
 r1.on('line' , (line) =>{
 
@@ -42,106 +113,54 @@ r1.on('line' , (line) =>{
       carboCounter.push(0);
       proteinCounter.push(0);
       fatCounter.push(0);
-      countryObj[key][headContent[fat]] = 0;
-      countryObj[key][headContent[carbo]] = 0;
-      countryObj[key][headContent[protein]] = 0;
-    });
-  }
 
+      countryObj[key] = [{"region":"North Europe" , "ingreValue":0},
+                        {"region":"Central Europe" , "ingreValue":0},
+                        {"region":"South Europe" , "ingreValue":0}
+                      ];
+    });
+
+  }
   else{
     var regex = /".*?"/g;
     var arr,temp;
     var lineTemp = line;
 
-    // regex for splitting ,
     while((arr = regex.exec(line))){
       temp = arr[0].replace(/,/g,"@@@");
       lineTemp = lineTemp.replace(arr[0] , temp);
-
     }
     var lineArr = lineTemp.split(",");
     var conArr = lineArr[country].split("@@@");
 
-    //iterate through array after splitting
-    conArr.forEach(function(el){
+    //  iterate through array after splitting
+      conArr.forEach(function(el){
+        el = el.replace("\"","");
+        var area = checkRegion(el);
 
-      var area = -1;
-      el = el.replace("\"","");
+        if(area != null)
+        {
+          if(checkNaN(lineArr[fat]))
+            insertValue("fat",lineArr[fat] , area);
 
-      // for first region
-      if(countries1.indexOf(el)!=-1)
-      {
-        if(checkNaN(lineArr[fat]))
-        countryObj["North Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
+          if(checkNaN(lineArr[carbo]))
+            insertValue("carbo",lineArr[carbo] , area);
 
-        if(checkNaN(lineArr[carbo]))
-        countryObj["North Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
+          if(checkNaN(lineArr[protein]))
+              insertValue("protein",lineArr[protein] , area);
+        } //if checkRegion
 
-        if(checkNaN(lineArr[protein]))
-        countryObj["North Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-        area=0;
-
-      }
-
-      //for second region
-      if(countries2.indexOf(el)!=-1)
-      {
-        if(checkNaN(lineArr[fat]))
-        countryObj["Central Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
-
-        if(checkNaN(lineArr[carbo]))
-        countryObj["Central Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
-
-        if(checkNaN(lineArr[protein]))
-        countryObj["Central Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-        area =1;
-      }
-
-      //for third region
-      if(countries3.indexOf(el)!=-1)
-      {
-        if(checkNaN(lineArr[fat]))
-        countryObj["South Europe"][headContent[fat]] += parseFloat(lineArr[fat]);
-
-        if(checkNaN(lineArr[carbo]))
-        countryObj["South Europe"][headContent[carbo]] += parseFloat(lineArr[carbo]);
-
-        if(checkNaN(lineArr[protein]))
-        countryObj["South Europe"][headContent[protein]] += parseFloat(lineArr[protein]);
-        area = 2;
-      }
-
-    //for counters
-      if(area!=-1){
-        if(checkNaN(lineArr[protein])){
-          proteinCounter[area]++;
-        }
-
-        if(checkNaN(lineArr[fat])){
-          fatCounter[area]++;
-        }
-
-        if(checkNaN(lineArr[carbo])){
-          carboCounter[area]++;
-        }
-      } //if area!=-1
-
-    });
+      }); // conArr
   }
-
-
   header++;
 
 });
 
-// if value is ""
-function checkNaN(value){
 
-  if(value.trim()=="")
-  return false;
-  else
-  return true;
-}// checkNaN
+r1.on('close',function(){
+  var newCountryObj = avg(carboCounter , fatCounter , proteinCounter , countryObj);
+  fs.writeFileSync('result2.json',JSON.stringify(newCountryObj),'utf-8');
+});
 
 
 //calculate average
@@ -149,21 +168,30 @@ function  avg(carboCounter , fatCounter , proteinCounter , countryObj){
 
   var keys = Object.keys(countryObj);
 
-  for(var el in countryObj){
+  keys.forEach(function(ingredient){
+      valueObj = countryObj[ingredient];
 
-    var index = keys.indexOf(el);
-    countryObj[el]["proteins_100g"] /= proteinCounter[index];
-    countryObj[el]["carbohydrates_100g"] /= carboCounter[index];
-    countryObj[el]["fat_100g"] /= fatCounter[index];
-  };
+      valueObj.forEach(function(ing){
+        var count = regionCount(ing["region"]);
+            if(ingredient=="carbo")
+              ing["ingreValue"] /= carboCounter[count];
+            else if(ingredient=="protein")
+              ing["ingreValue"] /= proteinCounter[count];
+            else if(ingredient=="fat")
+              ing["ingreValue"] /= fatCounter[count];
+      });
+
+  });//keys for each
 
   return countryObj;
 } //avg
 
 
+// if value is ""
+function checkNaN(value){
 
-r1.on('close',function(){
-
-  var newCountryObj = avg(carboCounter , fatCounter , proteinCounter , countryObj);
-  fs.writeFileSync('result2.json',JSON.stringify(newCountryObj),'utf-8');
-});
+  if(value.trim()=="")
+    return false;
+  else
+    return true;
+}// checkNaN
